@@ -148,11 +148,6 @@ class data_pointer_base
 		{
 		}
 
-		data_pointer_base(const std::string &str) :
-			m_counter(NULL), m_data(const_cast<char *>(str.c_str())), m_index(0), m_size(str.size())
-		{
-		}
-
 		data_pointer_base(data_buffer_base<atomic_type> &&buf) : m_index(0), m_size(buf.size())
 		{
 			m_counter = new (buf.m_data) atomic_type(1);
@@ -312,7 +307,55 @@ class data_pointer_base
 		size_t m_size;
 };
 
+template <typename AtomicType>
+class argument_data_base
+{
+public:
+	typedef AtomicType atomic_type;
+
+	argument_data_base(const data_pointer_base<atomic_type> &data) :
+		m_data(data.data()), m_size(data.size())
+	{
+	}
+
+	argument_data_base(const std::string &data) :
+		m_data(data.c_str()), m_size(data.size())
+	{
+	}
+
+	template <ssize_t size>
+	argument_data_base(const char (&data)[size], typename std::enable_if<size >= 1, char *>::type = NULL) :
+		m_data(data), m_size(size - 1)
+	{
+	}
+
+	argument_data_base(const char *data) :
+		m_data(data), m_size(std::strlen(data))
+	{
+	}
+
+	const void *data() const
+	{
+		return m_data;
+	}
+
+	size_t size() const
+	{
+		return m_size;
+	}
+
+	operator data_pointer_base<atomic_type>() const
+	{
+		return data_pointer_base<atomic_type>::from_raw(m_data, m_size);
+	}
+
+private:
+	const void *m_data;
+	size_t m_size;
+};
+
 typedef data_pointer_base<std::atomic_int_fast32_t> data_pointer;
+typedef argument_data_base<std::atomic_int_fast32_t> argument_data;
 typedef data_buffer_base<std::atomic_int_fast32_t> data_buffer;
 
 }} /* namespace ioremap::elliptics */

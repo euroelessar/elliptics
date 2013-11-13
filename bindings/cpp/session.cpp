@@ -95,7 +95,7 @@ struct exec_context_data
 	std::string event;
 	data_pointer data;
 
-	static exec_context create_raw(const exec_context *other, const std::string &event, const data_pointer &data)
+	static exec_context create_raw(const exec_context *other, const std::string &event, const argument_data &data)
 	{
 		std::shared_ptr<exec_context_data> p = std::make_shared<exec_context_data>();
 
@@ -123,17 +123,17 @@ struct exec_context_data
 		return exec_context(p);
 	}
 
-	static exec_context create(const std::string &event, const data_pointer &data)
+	static exec_context create(const std::string &event, const argument_data &data)
 	{
 		return create_raw(NULL, event, data);
 	}
 
-	static exec_context copy(const exec_context &other, const std::string &event, const data_pointer &data)
+	static exec_context copy(const exec_context &other, const std::string &event, const argument_data &data)
 	{
 		return create_raw(&other, event, data);
 	}
 
-	static exec_context copy(const struct sph &other, const std::string &event, const data_pointer &data)
+	static exec_context copy(const struct sph &other, const std::string &event, const argument_data &data)
 	{
 		struct sph tmp = other;
 		tmp.event_size = 0;
@@ -853,7 +853,7 @@ async_write_result session::write_data(const dnet_io_control &ctl)
 	return result;
 }
 
-async_write_result session::write_data(const dnet_io_attr &io, const data_pointer &file)
+async_write_result session::write_data(const dnet_io_attr &io, const argument_data &file)
 {
 	struct dnet_io_control ctl;
 	memset(&ctl, 0, sizeof(ctl));
@@ -876,7 +876,7 @@ async_write_result session::write_data(const dnet_io_attr &io, const data_pointe
 }
 
 
-async_write_result session::write_data(const key &id, const data_pointer &file, uint64_t remote_offset)
+async_write_result session::write_data(const key &id, const argument_data &file, uint64_t remote_offset)
 {
 	transform(id);
 	dnet_id raw = id.id();
@@ -1163,7 +1163,7 @@ async_write_result session::write_cas(const key &id, const std::function<data_po
 	return result;
 }
 
-async_write_result session::write_cas(const key &id, const data_pointer &file, const dnet_id &old_csum, uint64_t remote_offset)
+async_write_result session::write_cas(const key &id, const argument_data &file, const dnet_id &old_csum, uint64_t remote_offset)
 {
 	transform(id);
 	dnet_id raw = id.id();
@@ -1190,7 +1190,7 @@ async_write_result session::write_cas(const key &id, const data_pointer &file, c
 	return write_data(ctl);
 }
 
-async_write_result session::write_prepare(const key &id, const data_pointer &file, uint64_t remote_offset, uint64_t psize)
+async_write_result session::write_prepare(const key &id, const argument_data &file, uint64_t remote_offset, uint64_t psize)
 {
 	transform(id);
 
@@ -1215,7 +1215,7 @@ async_write_result session::write_prepare(const key &id, const data_pointer &fil
 	return write_data(ctl);
 }
 
-async_write_result session::write_plain(const key &id, const data_pointer &file, uint64_t remote_offset)
+async_write_result session::write_plain(const key &id, const argument_data &file, uint64_t remote_offset)
 {
 	transform(id);
 
@@ -1241,7 +1241,7 @@ async_write_result session::write_plain(const key &id, const data_pointer &file,
 	return write_data(ctl);
 }
 
-async_write_result session::write_commit(const key &id, const data_pointer &file, uint64_t remote_offset, uint64_t csize)
+async_write_result session::write_commit(const key &id, const argument_data &file, uint64_t remote_offset, uint64_t csize)
 {
 	transform(id);
 
@@ -1265,7 +1265,7 @@ async_write_result session::write_commit(const key &id, const data_pointer &file
 	return write_data(ctl);
 }
 
-async_write_result session::write_cache(const key &id, const data_pointer &file, long timeout)
+async_write_result session::write_cache(const key &id, const argument_data &file, long timeout)
 {
 	transform(id);
 	dnet_id raw = id.id();
@@ -1835,7 +1835,7 @@ async_iterator_result session::cancel_iterator(const key &id, uint64_t iterator_
 	return iterator(id, data);
 }
 
-async_exec_result session::exec(dnet_id *id, const std::string &event, const data_pointer &data)
+async_exec_result session::exec(dnet_id *id, const std::string &event, const argument_data &data)
 {
 	exec_context context = exec_context_data::create(event, data);
 
@@ -1848,7 +1848,7 @@ async_exec_result session::exec(dnet_id *id, const std::string &event, const dat
 	return request(id, context);
 }
 
-async_exec_result session::exec(struct dnet_id *id, int src_key, const std::string &event, const data_pointer &data)
+async_exec_result session::exec(struct dnet_id *id, int src_key, const std::string &event, const argument_data &data)
 {
 	exec_context context = exec_context_data::create(event, data);
 
@@ -1862,7 +1862,7 @@ async_exec_result session::exec(struct dnet_id *id, int src_key, const std::stri
 	return request(id, context);
 }
 
-async_exec_result session::exec(const exec_context &tmp_context, const std::string &event, const data_pointer &data)
+async_exec_result session::exec(const exec_context &tmp_context, const std::string &event, const argument_data &data)
 {
 	exec_context context = exec_context_data::copy(tmp_context, event, data);
 
@@ -1875,7 +1875,7 @@ async_exec_result session::exec(const exec_context &tmp_context, const std::stri
 	return request(&id, context);
 }
 
-async_push_result session::push(dnet_id *id, const exec_context &tmp_context, const std::string &event, const data_pointer &data)
+async_push_result session::push(dnet_id *id, const exec_context &tmp_context, const std::string &event, const argument_data &data)
 {
 	exec_context context = exec_context_data::copy(tmp_context, event, data);
 
@@ -1886,7 +1886,7 @@ async_push_result session::push(dnet_id *id, const exec_context &tmp_context, co
 	return request(id, context);
 }
 
-async_reply_result session::reply(const exec_context &tmp_context, const data_pointer &data, exec_context::final_state state)
+async_reply_result session::reply(const exec_context &tmp_context, const argument_data &data, exec_context::final_state state)
 {
 	exec_context context = exec_context_data::copy(tmp_context, tmp_context.event(), data);
 
@@ -2034,7 +2034,10 @@ async_write_result session::bulk_write(const std::vector<dnet_io_attr> &ios, con
 
 async_write_result session::bulk_write(const std::vector<dnet_io_attr> &ios, const std::vector<std::string> &data)
 {
-	std::vector<data_pointer> pointer_data(data.begin(), data.end());
+	std::vector<data_pointer> pointer_data;
+	pointer_data.reserve(data.size());
+	for (auto it = data.begin(); it != data.end(); ++it)
+		pointer_data.push_back(data_pointer::from_raw(*it));
 	return bulk_write(ios, pointer_data);
 }
 
